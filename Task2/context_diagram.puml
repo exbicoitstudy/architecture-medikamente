@@ -1,7 +1,7 @@
 @startuml C4_Context
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
 
-Person(patient, "Пациент", "Записывается на прием, просматривает свои данные")
+Person_Ext(patient, "Пациент", "Записывается на прием, просматривает свои данные")
 Person(doctor, "Врач", "Ведет прием, работает с медицинскими картами и анализами")
 Person(reception, "Сотрудник ресепшена", "Создает записи, управляет расписанием")
 Person(accountant, "Бухгалтер", "Обрабатывает платежи")
