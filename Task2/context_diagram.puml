@@ -1,0 +1,89 @@
+@startuml C4_Context
+!include ./c4/C4_Context.puml
+
+Person_Ext(patient, "Пациент", "Записывается на прием, просматривает свои данные")
+Person(doctor, "Врач", "Ведет прием, работает с медицинскими картами и анализами")
+Person(reception, "Сотрудник ресепшена", "Создает записи, управляет расписанием")
+Person(accountant, "Бухгалтер", "Обрабатывает платежи")
+Person(warehouse, "Сотрудник склада", "Учитывает ТМЦ")
+Person(admin, "IT/Техдиректор", "Управляет системами, контролирует безопасность")
+
+System_Ext(lab, "Внешняя лаборатория", "Передает результаты анализов")
+
+System_Ext(bank, "Банк/платежный шлюз", "Обрабатывает платежи")
+
+Boundary(publicZone, "Public Zone") {
+    System(patientPortal, "Patient Portal / Mobile App", "Запись, ЛК, уведомления. Доступен пациенту вне офиса.")
+}
+
+
+Boundary(dmzZone, "Integration Zone") {
+    System(apiGateway, "API Gateway", "Проверка доступа, фильтрация данных, защита API")
+    System(labIntegration, "Lab Integration Service", "Интеграция с лабораторией, загрузка результатов анализов")
+}
+
+
+Boundary(secureZone, "Secure Data Zone (Protected PII, Medical Data)") {
+
+    System(coreMedical, "Core Medical System", "Пациенты, медицинские карты, приемы, анализы. Содержит PII и медицинские данные")
+
+    System(billing, "Billing & Payments System", "Учет платежей, работа с оплатами")
+
+    System(inventory, "Inventory System", "Учет ТМЦ")
+
+    System(securityIAM, "Identity & Access Management (IAM)", "Аутентификация, RBAC/ABAC, Single Sign-On")
+
+    System(consent, "Privacy & Consent Management", "Управление согласиями пациента и ограничениями обработки")
+
+    System(dataTagging, "Data Classification & Tagging Service", "Классификация данных: PII, медицинские  данные, финданные")
+
+    System(dataProtection, "Data Protection Service", "Псевдонимизация, маскирование, обезличивание")
+
+    System(kms, "Key Management Service (KMS/HSM)", "Хранение и ротация ключей шифрования")
+
+    System(audit, "Audit & SIEM", "Журналирование доступа, выявление аномалий")
+
+    System(dataPlatform, "Secure Analytics Platform (DWH/Data Lake)", "Аналитика, BI, ML/AI на обезличенных данных")
+
+    System(dataCatalog, "Data Catalog and Data Lineage", "Описание данных, lineage, происхождение данных")
+}
+
+
+Rel(patient, patientPortal, "Запись, просмотр данных")
+Rel(patientPortal, apiGateway, "API-запросы")
+
+Rel(doctor, apiGateway, "Работа с медицинским картами/анализами")
+Rel(reception, apiGateway, "Создание записей")
+Rel(accountant, apiGateway, "Работа с платежами")
+Rel(warehouse, apiGateway, "Учет ТМЦ")
+Rel(admin, apiGateway, "Администрирование")
+
+Rel(apiGateway, securityIAM, "Проверка доступа")
+Rel(apiGateway, consent, "Проверка согласий")
+Rel(apiGateway, coreMedical, "Операции с медицинскими данными")
+Rel(apiGateway, billing, "Платежи")
+Rel(apiGateway, inventory, "ТМЦ")
+
+Rel(coreMedical, dataTagging, "Тегирование данных")
+Rel(coreMedical, dataProtection, "Анонимизация/маскирование")
+Rel(coreMedical, audit, "Запись действий")
+
+Rel(coreMedical, dataProtection, "Передача данных для обезличивания")
+Rel(dataProtection, dataPlatform, "Обезличенные данные")
+Rel(dataPlatform, dataCatalog, "Регистрация метаданных и lineage")
+
+Rel(labIntegration, lab, "Получение анализов")
+Rel(billing, bank, "Платежные операции")
+
+Rel(coreMedical, kms, "Использует ключи шифрования для хранения медданных")
+Rel(billing, kms, "Шифрование финансовых данных")
+Rel(securityIAM, kms, "Подпись/валидация токенов")
+Rel(dataProtection, kms, "Ключи псевдонимизации")
+Rel(audit, kms, "Шифрование логов")
+Rel(dataPlatform, kms, "Шифрование данных при выгрузке в DWH/Data Lake")
+Rel(dataCatalog, kms, "Защита метаданных, контроль доступа")
+
+Rel(coreMedical, labIntegration, "Создание направлений, получение результатов")
+Rel(labIntegration, dataProtection, "Обезличивание/маскирование данных пациентов")
+
+@enduml
